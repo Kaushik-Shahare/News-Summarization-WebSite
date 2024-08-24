@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Capture Photo</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+      <h1 class="text-3xl font-bold mb-4">News Summarizer</h1>
+      <h2 class="text-2xl font-bold mb-4">Capture Photo</h2>
+      <div class="mb-4">
+        <video id="video" class="w-full rounded-lg shadow-md" autoplay></video>
+        <canvas id="canvas" class="hidden"></canvas>
+        <img id="capturedImage" class="w-full rounded-lg shadow-md hidden" />
+      </div>
+      <div class="flex justify-center space-x-4">
+        <button
+          id="capture"
+          class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
+        >
+          Capture Photo
+        </button>
+        <button
+          id="retake"
+          class="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-700 hidden"
+        >
+          Retake Photo
+        </button>
+      </div>
+      <form
+        id="photoForm"
+        method="POST"
+        enctype="multipart/form-data"
+        class="mt-4"
+      >
+        <input type="file" id="image" name="image" class="hidden" />
+        <button
+          type="submit"
+          id="submitPhoto"
+          class="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 hidden"
+        >
+          Submit Photo
+        </button>
+      </form>
+    </div>
+    <script>
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      const captureButton = document.getElementById("capture");
+      const retakeButton = document.getElementById("retake");
+      const photoForm = document.getElementById("photoForm");
+      const imageInput = document.getElementById("image");
+      const capturedImage = document.getElementById("capturedImage");
+      const submitPhotoButton = document.getElementById("submitPhoto");
+
+      // Get access to the camera
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then(function (stream) {
+            video.srcObject = stream;
+            video.play();
+          });
+      }
+
+      // Capture the photo
+      captureButton.addEventListener("click", function () {
+        const context = canvas.getContext("2d");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function (blob) {
+          const file = new File([blob], "photo.png", { type: "image/png" });
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          imageInput.files = dataTransfer.files;
+
+          // Display the captured image
+          const url = URL.createObjectURL(blob);
+          capturedImage.src = url;
+          capturedImage.style.display = "block";
+          video.style.display = "none";
+          captureButton.style.display = "none";
+          retakeButton.style.display = "block";
+          submitPhotoButton.style.display = "block";
+        }, "image/png");
+      });
+
+      // Retake the photo
+      retakeButton.addEventListener("click", function () {
+        capturedImage.style.display = "none";
+        video.style.display = "block";
+        captureButton.style.display = "block";
+        retakeButton.style.display = "none";
+        submitPhotoButton.style.display = "none";
+      });
+    </script>
+  </body>
+</html>
